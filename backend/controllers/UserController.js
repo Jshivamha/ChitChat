@@ -1,6 +1,7 @@
 const User = require('../DB/User.model');
 const bcrypt = require("bcryptjs")
 const createTokenAndSaceCookie = require('../JWT/GenerateToken')
+const jwt = require('jsonwebtoken');
 const signUp = async (req, res)=>{
     try {
     const { fullName, email, password, confirmPassword } = req.body;
@@ -47,9 +48,12 @@ const signIn = async (req, res)=>{
   const {email, password} = req.body;
   try {
     const user = await User.findOne({email});
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!user || !isMatch) {
+    if (!user) {
       return res.status(409).json({ message: 'user does not exist !' });
+    }
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(409).json({ message: 'Invalid password !' });
     }
     createTokenAndSaceCookie(user._id, res);
     return res.status(201).json({
@@ -70,7 +74,7 @@ const signIn = async (req, res)=>{
 const logOut = async (req, res)=>{
 
   try {
-    await res.clearCookie('token');
+    await res.clearCookie('jwt');
     return res.status(200).json({ message: 'User loged out !' });
   } catch (error) {
     console.error(error);
@@ -78,4 +82,21 @@ const logOut = async (req, res)=>{
   }
 }
 
-module.exports = { signUp, signIn, logOut};
+const fetchAllRegisteredUsers = async (req, res) => {
+  // console.log('Cookie Header:', req.headers.cookie);
+  try {
+    const users = await User.find({} ,'-password -createdAt -updatedAt').lean();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Something went wrong',
+      error: error.message,
+    });
+  }
+};
+
+
+
+
+module.exports = { signUp, signIn, logOut, fetchAllRegisteredUsers};

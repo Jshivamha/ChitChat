@@ -1,8 +1,10 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import api from "../utils/axios";
+import { useAuth } from "../Context/AuthProvider";
 
 const SignUp = () => {
+  const { authUser, setauthUser } = useAuth(); 
   const {
     register,
     handleSubmit,
@@ -10,7 +12,7 @@ const SignUp = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const UserData = {
       fullName: data.fullName,
       email: data.email,
@@ -18,14 +20,14 @@ const SignUp = () => {
       confirmPassword: data.confirmPassword,
     };
 
-    axios
-      .post("http://localhost:3000/user/signup", UserData)
+    await api
+      .post("/user/signup", UserData)
       .then((response) => {
         console.log(response.data);
         console.log(UserData);
         localStorage.setItem("messanger", JSON.stringify(response.data));
         console.log(response.data);
-        
+        setauthUser(response.data);
 
         window.location.href = "/login";
       })

@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import api from '../utils/axios';
+import { useAuth } from '../Context/AuthProvider';
 const Login = () => {
+  const { authUser, setauthUser } = useAuth(); 
   const {
       register: login,
       handleSubmit,
     } = useForm();
 
 
-    const onSubmit = (data) => {
+    const onSubmit = async(data) => {
     const UserData = {
       email: data.email,
       password: data.password,
     };
 
-    axios
-      .post("http://localhost:3000/user/signin", UserData)
+    await api
+      .post("/user/signin", UserData)
       .then((response) => {
         if (response.data){
           alert("Login successful!");
         }
         console.log(response.data);
         localStorage.setItem("messanger", JSON.stringify(response.data));
+        setauthUser(response.data);
         window.location.href = "/";
       })
       .catch((error) => {
