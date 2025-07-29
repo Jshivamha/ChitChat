@@ -1,16 +1,13 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import User from "./User";
 import api from "../../utils/axios";
-
-// Create Context outside the component
-export const UserContext = createContext();
+import { UserContext } from "../ChatArea/ChatArea";
 
 const Users = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [registeredUser, setRegisteredUser] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const { selectedUser, setSelectedUser } = useContext(UserContext);
 
-  // Fetch current user from localStorage
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const userData = localStorage.getItem("messanger");
@@ -23,16 +20,13 @@ const Users = () => {
     fetchCurrentUser();
   }, []);
 
-  // Fetch all users except current user
   useEffect(() => {
     const fetchRegisteredUsers = async () => {
       try {
         const res = await api.get("/user/getalluser");
-
         const registeredUserData = res.data.filter(
           user => user.email !== currentUser?.user?.email
         );
-
         setRegisteredUser(registeredUserData);
         console.log("Users fetched successfully:", registeredUserData);
       } catch (err) {
@@ -47,11 +41,9 @@ const Users = () => {
 
   return (
     <div className="h-full overflow-y-auto px-4 pb-4">
-      <UserContext.Provider value={{ selectedUser, setSelectedUser }}>
-        {registeredUser.map((user, index) => (
-          <User key={user._id || index} user={user} />
-        ))}
-      </UserContext.Provider>
+      {registeredUser.map((user, index) => (
+        <User key={user._id || index} user={user} />
+      ))}
 
       <div className="text-center text-white/60 mt-4">
         {registeredUser.length === 0 ? "No users found" : ""}
